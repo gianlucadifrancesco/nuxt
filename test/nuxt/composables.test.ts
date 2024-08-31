@@ -31,23 +31,33 @@ registerEndpoint('/api/test', defineEventHandler(event => ({
 describe('app config', () => {
   it('can be updated', () => {
     const appConfig = useAppConfig()
-    expect(appConfig).toMatchInlineSnapshot(`
-      {
-        "nuxt": {},
-      }
-    `)
-    updateAppConfig({
+    expect(appConfig).toEqual(expect.objectContaining({ nuxt: {} }))
+
+    type UpdateConfig = Parameters<typeof updateAppConfig>[0]
+
+    const initConfig: UpdateConfig = {
       new: 'value',
       nuxt: { nested: 42 },
-    })
-    expect(appConfig).toMatchInlineSnapshot(`
-      {
-        "new": "value",
-        "nuxt": {
-          "nested": 42,
-        },
-      }
-    `)
+      regExp: /foo/g,
+      date: new Date(10),
+      arr: [1, 2, 3],
+    }
+    updateAppConfig(initConfig)
+    expect(appConfig).toEqual(expect.objectContaining(initConfig))
+
+    const newConfig: UpdateConfig = {
+      nuxt: { anotherNested: 24 },
+      regExp: /bar/g,
+      date: new Date(20),
+      arr: [4, 5],
+    }
+    updateAppConfig(newConfig)
+    expect(appConfig).toEqual(expect.objectContaining({
+      ...initConfig,
+      ...newConfig,
+      nuxt: { nested: 42, anotherNested: 24 },
+      arr: [4, 5, 3],
+    }))
   })
 })
 
